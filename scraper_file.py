@@ -9,7 +9,7 @@ class ImmowebScraper:
         self.pages=pages
         self.immoweb_url=[]
         
-        self.features={}
+        self.features=[]
         
         
     
@@ -45,7 +45,7 @@ class ImmowebScraper:
         return(self.urls_list)
     
     def immoweb_url_list(self,url):
-        
+        time.sleep(0.1)
         lst=[]
         try:    
             response=requests.get(url, headers=self.headers)
@@ -54,7 +54,10 @@ class ImmowebScraper:
             #print(soup.prettify())
                 
             for tag in soup.find_all("a", attrs={"class": "card__title-link"}):
-                lst.append(tag.get("href"))
+                href=tag.get("href")
+                if "new-real-estate-project" not in href:
+                    lst.append(href)
+                    
         except Exception as e:
             print(f"error occured: {e}")
         
@@ -62,7 +65,7 @@ class ImmowebScraper:
         
         
     def immoweb_url_thread(self):
-        self.urls_list = self.get_urls_list()
+        #self.urls_list = self.get_urls_list()
         with ThreadPoolExecutor(max_workers=9) as executor:
             
             results = executor.map(lambda url: self.immoweb_url_list(url), self.urls_list)
@@ -79,38 +82,49 @@ class ImmowebScraper:
         dictionary={}
         try:    
             response=requests.get(url, headers=self.headers)
+            print(response.status_code)
             content=response.content
             soup=BeautifulSoup(content, "html.parser")
-            #print(soup.prettify())
-            
             tr_tag=(soup.find_all("tr", attrs={"class":"classified-table__row" }))
+            print(tr_tag)
+        except Exception as e:
+            print(e)
+        
+        try:    
             for tag in tr_tag:
                 th_tag=tag.find("th")
                 td_tag=tag.find("td")
+                
+                print(th_tag, td_tag)
                
                 header_name=th_tag.get_text(strip=True)
                 header_data=(td_tag.get_text(strip=True))
+                print("__________________________")
+                print(f"HEADER NAME:{header_name}")
+                print(f" HEADER DATA  :{header_data}")
                 dictionary[header_name]= header_data
-        except:
-            print("no tags found")
-        print(dictionary)
+        except Exception as e:
+            print(f"error is {e}")
+        
         return(dictionary)
         
             
     def thread_for_attrvalue(self):
-            #X=pd.read_csv("./immoweb_url_file1.csv")
-            #self.immoweb_url=X["immoweb_url"].tolist()
-            with ThreadPoolExecutor(max_workers=10) as executor:
-                
-                results = executor.map(lambda url: self.get_attribute_value(url), self.immoweb_url)
+        X=pd.read_csv("./immoweb_url_file1.csv")
+        self.immoweb_url=X["immoweb_url"][:1].to_list()  
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            results = executor.map(lambda url: self.get_attribute_value(url), self.immoweb_url)
+            try:    
                 for result in results:
                     self.features.append(result)
-                    
-            print(self.features)
-            df1=pd.DataFrame(self.features)
-            df1.to_csv("dataset_file.csv")
-            return self.features
-        
+            except:
+                pass
+                
+        print(self.features)
+        df1=pd.DataFrame(self.features)
+        df1.to_csv("dataset_file.csv")
+        return self.features
+    
         
     
         
