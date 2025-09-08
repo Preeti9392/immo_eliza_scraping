@@ -31,9 +31,10 @@ The scraper performs two main tasks:
 ---
 📂 File Structure
 ```
-├── scraper.py              # Main scraper class
-├── immoweb_url_file.csv    # Scraped property URLs
-├── dataset_file.csv        # Extracted property attributes
+├── scraper.py                   # Main scraper class
+└──data            
+     ├── immoweb_url_file.csv    # Scraped property URLs
+     └── dataset_file.csv        # Extracted property attributes
 ├── requirements.txt
 ├── gitignore
 └── README.md
